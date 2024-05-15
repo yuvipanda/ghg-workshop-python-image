@@ -1,0 +1,45 @@
+name: Build and push container image
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: sunu/ghg-workshop-python-image
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Log in to the container registry
+      uses: docker/login-action@v3
+      with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v3
+      with:
+        install: true
+
+    - name: Build and push container image
+      uses: jupyterhub/repo2docker-action@master
+      with:
+        DOCKER_USERNAME: ${{ github.actor }}
+        DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        DOCKER_REGISTRY: ${{ env.REGISTRY }}
+        IMAGE_NAME: ${{ env.IMAGE_NAME }}
+        REPO_DIR: /srv/repo
+        # Don't push the image during a PR build
+        NO_PUSH: "${{ github.event_name == 'pull_request' }}"
