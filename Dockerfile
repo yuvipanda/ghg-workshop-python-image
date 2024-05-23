@@ -13,10 +13,7 @@ RUN echo "Checking for 'apt.txt'..." \
         && rm -rf /var/lib/apt/lists/* \
         ; fi
 
-ADD image-tests /srv/repo/image-tests
-
-# enable image-tests; workaround for https://github.com/jupyterhub/repo2docker-action/issues/110
-RUN chown -R ${NB_USER}:${NB_USER} /srv/repo
+COPY --chown=${NB_USER}:${NB_USER} image-tests /srv/repo/image-tests
 
 USER ${NB_USER}
 
